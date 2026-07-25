@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "noEmit": true
+  },
+  // grammar.js is the only hand-written source. src/ is generated C and JSON;
+  // grammars/ is Zed's build-time clone of this repository.
+  "include": ["grammar.js"],
+  "exclude": ["node_modules", "src", "grammars"]
+}

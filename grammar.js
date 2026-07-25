@@ -1,6 +1,12 @@
 /// <reference types="tree-sitter-cli/dsl" />
 // @ts-check
 
+/* oxlint-disable no-useless-escape --
+   `\[` inside a character class is redundant to JavaScript, but these regexes
+   are re-parsed by tree-sitter using Rust's regex crate, where a bare `[`
+   opens a nested class and fails with "unclosed character class". Dropping the
+   escapes breaks `tree-sitter generate`. */
+
 // Tree-sitter grammar for Surge (nssurge.com) configuration files.
 //
 // Surge's format is INI-shaped but not INI: the [Rule] section holds
@@ -9,7 +15,7 @@
 // arbitrarily deep inside parentheses.
 
 module.exports = grammar({
-  name: 'surge',
+  name: "surge",
 
   // Newlines are significant (they terminate entries), so only horizontal
   // whitespace goes in `extras`.
@@ -27,15 +33,9 @@ module.exports = grammar({
 
     // `[General]`, and also named sections like `[Tailscale ts-007]`.
     section_header: ($) =>
-      seq(
-        '[',
-        alias(token(/[^\[\]\r\n]+/), $.section_name),
-        ']',
-        $._newline,
-      ),
+      seq("[", alias(token(/[^\[\]\r\n]+/), $.section_name), "]", $._newline),
 
-    _line: ($) =>
-      choice($._newline, $.comment, $.setting, $.rule, $.raw_line),
+    _line: ($) => choice($._newline, $.comment, $.setting, $.rule, $.raw_line),
 
     // Only reachable at the start of a line, so a `#` inside a value stays
     // part of that value instead of swallowing the rest of the line.
@@ -44,25 +44,15 @@ module.exports = grammar({
     // ---- key = value ----------------------------------------------------
 
     setting: ($) =>
-      seq(
-        field('name', alias($._word, $.key)),
-        '=',
-        optional($.value_list),
-        $._newline,
-      ),
+      seq(field("name", alias($._word, $.key)), "=", optional($.value_list), $._newline),
 
-    value_list: ($) =>
-      seq(optional($.directive), $._item, repeat(seq(',', $._item))),
+    value_list: ($) => seq(optional($.directive), $._item, repeat(seq(",", $._item))),
 
     _item: ($) => choice($.parameter, $.value),
 
     // Inline `psk=…`, `version=5`, `underlying-proxy=🚦XD`.
     parameter: ($) =>
-      seq(
-        field('name', alias($._word, $.param_name)),
-        '=',
-        optional(field('value', $.value)),
-      ),
+      seq(field("name", alias($._word, $.param_name)), "=", optional(field("value", $.value))),
 
     // `%APPEND%` / `%INSERT%`. Needs lexical precedence to beat `_word`,
     // which would otherwise match further and win on length.
@@ -72,38 +62,37 @@ module.exports = grammar({
 
     rule: ($) =>
       seq(
-        field('type', alias($._word, $.rule_type)),
-        ',',
-        repeat(seq($._rule_arg, ',')),
-        field('policy', $.policy),
-        repeat(seq(',', $.rule_modifier)),
+        field("type", alias($._word, $.rule_type)),
+        ",",
+        repeat(seq($._rule_arg, ",")),
+        field("policy", $.policy),
+        repeat(seq(",", $.rule_modifier)),
         $._newline,
       ),
 
     _rule_arg: ($) => choice($.group, $.value),
 
     // The `((…),(…))` wrapper that AND/OR/NOT take.
-    group: ($) =>
-      seq('(', $.nested_rule, repeat(seq(',', $.nested_rule)), ')'),
+    group: ($) => seq("(", $.nested_rule, repeat(seq(",", $.nested_rule)), ")"),
 
     // A rule nested inside a group carries no policy of its own.
     nested_rule: ($) =>
       seq(
-        '(',
-        field('type', alias($._word, $.rule_type)),
-        ',',
+        "(",
+        field("type", alias($._word, $.rule_type)),
+        ",",
         $._rule_arg,
-        repeat(seq(',', $._rule_arg)),
-        ')',
+        repeat(seq(",", $._rule_arg)),
+        ")",
       ),
 
     rule_modifier: () =>
       choice(
-        'no-resolve',
-        'force-remote-dns',
-        'pre-matching',
-        'extended-matching',
-        'dns-failed',
+        "no-resolve",
+        "force-remote-dns",
+        "pre-matching",
+        "extended-matching",
+        "dns-failed",
       ),
 
     // ---- fallback -------------------------------------------------------
@@ -117,8 +106,7 @@ module.exports = grammar({
 
     // Any run of characters that is not structural. Internal spaces are kept
     // (`SSID:XD Office`), leading/trailing ones are not.
-    _word: () =>
-      token(/[^\s,=()\[\]#;][^,=()\r\n]*[^\s,=()\r\n]|[^\s,=()\[\]#;]/),
+    _word: () => token(/[^\s,=()\[\]#;][^,=()\r\n]*[^\s,=()\r\n]|[^\s,=()\[\]#;]/),
 
     _newline: () => token(/\r?\n/),
   },

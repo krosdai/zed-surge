@@ -1,4 +1,28 @@
-node_modules/
-build/
+# Dependencies
+node_modules
+**/node_modules
+
+# Zed clones the grammar repository here when it builds this as a dev
+# extension, then compiles src/parser.c out of it. Rebuilt on every reload.
+grammars/
+
+# Build outputs
+build
+dist
+coverage
 *.wasm
+*.tsbuildinfo
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# OS
 .DS_Store
+
+# Local config files
+*.local.*

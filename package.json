@@ -3,7 +3,40 @@
   "version": "0.1.0",
   "description": "Tree-sitter grammar for Surge configuration files",
   "license": "MIT",
-  "main": "bindings/node",
-  "keywords": ["parser", "tree-sitter", "surge"],
-  "files": ["grammar.js", "src/**"]
+  "keywords": [
+    "parser",
+    "tree-sitter",
+    "surge",
+    "zed",
+    "zed-extension"
+  ],
+  "files": [
+    "grammar.js",
+    "src/**"
+  ],
+  "packageManager": "pnpm@11.17.0+sha512.cca3cea332ad254bb84145f966d19f4879615210346fc92c79a047f23a0d7b3cca3c3792f0076ba1f1831d277efbcf0a9119b31a9a60eca7fb3d6231f331ef72",
+  "engines": {
+    "node": ">=22.22.1"
+  },
+  "scripts": {
+    "generate": "tree-sitter generate",
+    "format": "oxfmt && prettier --write --ignore-unknown --log-level=warn --no-error-on-unmatched-pattern \"**/*.{md,mdx,markdown,json,jsonc,json5,yaml,yml,html,htm,css,scss,less,vue,graphql,gql,hbs,handlebars}\" && mise run autocorrect:fix",
+    "lint": "pnpm run lint:js && pnpm run lint:grammar && pnpm run lint:text",
+    "lint:js": "oxlint && oxfmt --check && prettier --check --ignore-unknown --no-error-on-unmatched-pattern \"**/*.{md,mdx,markdown,json,jsonc,json5,yaml,yml,html,htm,css,scss,less,vue,graphql,gql,hbs,handlebars}\"",
+    "lint:grammar": "tree-sitter generate && git diff --exit-code --stat -- src/",
+    "lint:text": "mise run autocorrect:lint",
+    "lint:staged": "lint-staged --concurrent false",
+    "lint:fix": "oxlint --fix && pnpm run format",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.8",
+    "oxfmt": "^0.58.0",
+    "oxlint": "^1.73.0",
+    "oxlint-tsgolint": "^0.24.0",
+    "prettier": "^3.9.5",
+    "tree-sitter-cli": "^0.26.11",
+    "typescript": "^6.0.3"
+  }
 }

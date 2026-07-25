@@ -1,0 +1,7 @@
+# Not a monorepo — this file exists solely for `allowBuilds`, which is where
+# pnpm 11 reads its install-script allowlist from.
+#
+# tree-sitter-cli downloads its prebuilt binary in a postinstall hook; without
+# this entry pnpm skips it and every `tree-sitter` invocation fails.
+allowBuilds:
+  tree-sitter-cli: true

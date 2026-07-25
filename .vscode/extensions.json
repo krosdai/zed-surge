@@ -1,0 +1,19 @@
+{
+  "recommendations": [
+    "charliermarsh.ruff",
+    "esbenp.prettier-vscode",
+    "huacnlee.autocorrect",
+    "ms-playwright.playwright",
+    "ms-python.python",
+    "oxc.oxc-vscode",
+    "tamasfe.even-better-toml",
+    "unifiedjs.vscode-mdx"
+  ],
+  "unwantedRecommendations": [
+    "dbaeumer.vscode-eslint",
+    "ms-python.black-formatter",
+    "ms-python.flake8",
+    "ms-python.isort",
+    "ms-python.pylint"
+  ]
+}
