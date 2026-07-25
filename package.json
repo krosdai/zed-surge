@@ -1,0 +1,9 @@
+{
+  "name": "tree-sitter-surge",
+  "version": "0.1.0",
+  "description": "Tree-sitter grammar for Surge configuration files",
+  "license": "MIT",
+  "main": "bindings/node",
+  "keywords": ["parser", "tree-sitter", "surge"],
+  "files": ["grammar.js", "src/**"]
+}

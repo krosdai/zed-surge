@@ -1,0 +1,17 @@
+{
+  "grammars": [
+    {
+      "name": "surge",
+      "camelcase": "Surge",
+      "scope": "source.surge",
+      "file-types": ["sgmodule"],
+      "injection-regex": "^surge$"
+    }
+  ],
+  "metadata": {
+    "version": "0.1.0",
+    "license": "MIT",
+    "description": "Tree-sitter grammar for Surge configuration files",
+    "authors": [{ "name": "xdanger", "email": "y@dai.co" }]
+  }
+}
