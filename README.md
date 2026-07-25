@@ -91,12 +91,18 @@ Two things that will waste your afternoon if you forget them:
 - **Zed caches the built grammar per `rev`.** A stale `rev` silently keeps the old
   parser, with no error to tell you why your change did nothing.
 
-To check the grammar against real configs:
+To check the grammar against real configs, from the repository root:
 
 ```sh
-npx tree-sitter-cli parse --scope source.surge path/to/*.conf
-npx tree-sitter-cli query --scope source.surge languages/surge/highlights.scm path/to/config.conf
+npx tree-sitter-cli parse --quiet --stat path/to/*.conf
+npx tree-sitter-cli query languages/surge/highlights.scm path/to/config.conf
 ```
+
+The CLI picks up the grammar from the working directory by matching the file
+against `file-types` in `tree-sitter.json`. Don't reach for `--scope` — that
+resolves through `parser-directories` in the CLI's own config, which this
+repository's name doesn't fit. Both commands warn that no parser directory is
+configured; ignore it, the parse still runs.
 
 A correct parse produces no `ERROR` nodes *and* no `raw_line` nodes — `raw_line`
 is the catch-all that keeps unknown syntax from erroring, so if it shows up on a

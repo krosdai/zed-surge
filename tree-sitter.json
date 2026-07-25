@@ -4,7 +4,8 @@
       "name": "surge",
       "camelcase": "Surge",
       "scope": "source.surge",
-      "file-types": ["sgmodule"],
+      "// file-types": "Consumed by the tree-sitter CLI only, so `conf` here is safe — Zed takes its suffixes from languages/surge/config.toml instead.",
+      "file-types": ["conf", "sgmodule"],
       "injection-regex": "^surge$"
     }
   ],
