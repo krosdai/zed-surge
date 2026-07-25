@@ -23,16 +23,16 @@ names containing emoji and colons (`🧡XD:000`), values containing spaces
 
 ## What it highlights
 
-| | |
-|---|---|
-| Section headers | `@title` |
-| Rule types — `DOMAIN-SUFFIX`, `GEOIP`, `RULE-SET`, `AND`/`OR`, `FINAL` … | `@keyword` |
-| The policy a rule resolves to | `@constant` |
-| Setting and proxy names | `@property` |
-| Inline params — `psk=`, `version=`, `hidden=` | `@attribute` |
-| Rule modifiers — `no-resolve`, `force-remote-dns` … | `@attribute` |
-| `DIRECT` / `REJECT*` | `@constant.builtin` |
-| URLs, ports, booleans | `@link_uri`, `@number`, `@boolean` |
+|                                                                          |                                    |
+| ------------------------------------------------------------------------ | ---------------------------------- |
+| Section headers                                                          | `@title`                           |
+| Rule types — `DOMAIN-SUFFIX`, `GEOIP`, `RULE-SET`, `AND`/`OR`, `FINAL` … | `@keyword`                         |
+| The policy a rule resolves to                                            | `@constant`                        |
+| Setting and proxy names                                                  | `@property`                        |
+| Inline params — `psk=`, `version=`, `hidden=`                            | `@attribute`                       |
+| Rule modifiers — `no-resolve`, `force-remote-dns` …                      | `@attribute`                       |
+| `DIRECT` / `REJECT*`                                                     | `@constant.builtin`                |
+| URLs, ports, booleans                                                    | `@link_uri`, `@number`, `@boolean` |
 
 Sections with whitespace-separated syntax (`[URL Rewrite]`, `[Header Rewrite]`)
 are recognised but not broken down; they render as plain text rather than
@@ -74,15 +74,28 @@ Grammar and extension share one root: `grammar.js` + `src/` are the Tree-sitter
 side, `extension.toml` + `languages/` are the Zed side. `[grammars.surge]` in
 `extension.toml` points back at this repository.
 
+Set up with [mise](https://mise.jdx.dev) — it pins Node, pnpm and AutoCorrect,
+and `pnpm install` brings in the linters and a matching `tree-sitter` binary:
+
+```sh
+mise run setup
+```
+
 After changing `grammar.js`:
 
 ```sh
-npx tree-sitter-cli generate
+pnpm run generate
 git commit -am "…"
 ```
 
 Then update `rev` in `extension.toml` to the new commit and run
 `zed: reload extensions`.
+
+`pnpm run lint` covers all of it: oxlint and oxfmt over `grammar.js`, Prettier
+over the docs and JSON, AutoCorrect over the prose, and `lint:grammar`, which
+regenerates the parser and fails if `src/` comes out different from what is
+committed. CI runs the same command, and a pre-commit hook runs the fixers over
+staged files.
 
 Two things that will waste your afternoon if you forget them:
 
@@ -94,8 +107,8 @@ Two things that will waste your afternoon if you forget them:
 To check the grammar against real configs, from the repository root:
 
 ```sh
-npx tree-sitter-cli parse --quiet --stat path/to/*.conf
-npx tree-sitter-cli query languages/surge/highlights.scm path/to/config.conf
+pnpm exec tree-sitter parse --quiet --stat path/to/*.conf
+pnpm exec tree-sitter query languages/surge/highlights.scm path/to/config.conf
 ```
 
 The CLI picks up the grammar from the working directory by matching the file
@@ -104,7 +117,7 @@ resolves through `parser-directories` in the CLI's own config, which this
 repository's name doesn't fit. Both commands warn that no parser directory is
 configured; ignore it, the parse still runs.
 
-A correct parse produces no `ERROR` nodes *and* no `raw_line` nodes — `raw_line`
+A correct parse produces no `ERROR` nodes _and_ no `raw_line` nodes — `raw_line`
 is the catch-all that keeps unknown syntax from erroring, so if it shows up on a
 line you meant to support, that line is silently unparsed.
 
