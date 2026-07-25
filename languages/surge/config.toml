@@ -1,0 +1,15 @@
+name = "Surge"
+grammar = "surge"
+
+# Deliberately does NOT claim "conf": the `ini` extension already registers
+# that suffix, and two languages claiming one suffix resolve unpredictably.
+# Surge configs are routed here by a `file_types` glob in settings.json.
+path_suffixes = ["sgmodule"]
+
+line_comments = ["# "]
+autoclose_before = ",)"
+
+brackets = [
+    { start = "(", end = ")", close = true, newline = false },
+    { start = "[", end = "]", close = true, newline = false },
+]

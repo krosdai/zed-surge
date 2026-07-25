@@ -1,0 +1,18 @@
+id = "surge"
+name = "Surge"
+version = "0.1.0"
+schema_version = 1
+authors = ["xdanger <y@dai.co>"]
+description = "Syntax highlighting for Surge (nssurge.com) configuration files"
+repository = "https://github.com/krosdai/zed-surge"
+
+# The grammar lives at the root of this same repository. Zed clones it at `rev`
+# and compiles src/parser.c with wasi-sdk — it never runs `tree-sitter
+# generate`, so the generated sources have to stay committed.
+#
+# After editing grammar.js: regenerate, commit, then bump `rev` to that commit
+# and run `zed: reload extensions`. Zed caches the built grammar per rev, so a
+# stale rev here silently keeps the old parser.
+[grammars.surge]
+repository = "https://github.com/krosdai/zed-surge"
+rev = "4d45676ca96bd3ae5e01536de9cc1acb6659a75b"
