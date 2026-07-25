@@ -37,6 +37,6 @@
     "oxlint-tsgolint": "^0.24.0",
     "prettier": "^3.9.5",
     "tree-sitter-cli": "^0.26.11",
-    "typescript": "^6.0.3"
+    "typescript": "^7.0.2"
   }
 }
