@@ -1,0 +1,303 @@
+==================
+Standalone hashbang directives
+==================
+
+#!MANAGED-CONFIG http://test.com/surge.conf interval=60 strict=true
+#!MANAGED-CONFIG https://example.com/a,b/surge.conf?token=a=b&x=1 interval=60 strict=true
+#!FORBIDDEN-AUTO-UPGRADE smart-group
+#!name=Example Module
+#!desc=Module description
+#!system=mac
+#!arguments=hostname=example.com&enable_mitm=true
+#!requirement=CORE_VERSION>=20 && (SYSTEM = 'iOS' || SYSTEM = 'tvOS')
+#!future-metadata=value
+[Proxy]
+#!include A.dconf, B.dconf
+
+---
+
+(source_file
+  (hashbang_directive
+    (hashbang_directive_marker)
+    (hashbang_directive_value))
+  (hashbang_directive
+    (hashbang_directive_marker)
+    (hashbang_directive_value))
+  (hashbang_directive
+    (hashbang_directive_marker)
+    (hashbang_directive_value))
+  (hashbang_directive
+    (hashbang_directive_marker)
+    (hashbang_directive_value))
+  (hashbang_directive
+    (hashbang_directive_marker)
+    (hashbang_directive_value))
+  (hashbang_directive
+    (hashbang_directive_marker)
+    (hashbang_directive_value))
+  (hashbang_directive
+    (hashbang_directive_marker)
+    (hashbang_directive_value))
+  (hashbang_directive
+    (hashbang_directive_marker)
+    (hashbang_directive_value))
+  (hashbang_directive
+    (hashbang_directive_marker)
+    (hashbang_directive_value))
+  (section
+    (section_header
+      (section_name))
+    (hashbang_directive
+      (hashbang_directive_marker)
+      (hashbang_directive_value))))
+
+==================
+Attached line requirements
+==================
+
+[Proxy Group]
+#!REQUIREMENT CORE_VERSION>=22 PrefixSetting = smart, policyA, policyB
+HashSetting = url, policyA, policyB #!REQUIREMENT CORE_VERSION<22
+SlashSetting = url-test, policyA, policyB //!REQUIREMENT CORE_VERSION<22
+PlatformSetting = select, policyA, policyB #!IOS-ONLY
+[Rule]
+#!REQUIREMENT CORE_VERSION>=22 DOMAIN,prefix.example,REJECT
+DOMAIN,hash.example,REJECT #!REQUIREMENT "CORE_VERSION>=22 AND SYSTEM=='iOS'"
+DOMAIN,slash.example,REJECT //!REQUIREMENT CORE_VERSION<22
+DOMAIN,mac.example,REJECT #!MACOS-ONLY
+[URL Rewrite]
+#!REQUIREMENT SYSTEM=='iOS' ^https://prefix.example reject
+^https://hash.example reject #!REQUIREMENT CORE_VERSION>=22
+^https://slash.example reject //!REQUIREMENT CORE_VERSION<22
+^https://tv.example reject #!TVOS-ONLY
+
+---
+
+(source_file
+  (section
+    (section_header
+      (section_name))
+    (setting
+      (requirement_prefix
+        (requirement_marker)
+        (requirement_expression))
+      (key)
+      (value_list
+        (value)
+        (value)
+        (value)))
+    (setting
+      (key)
+      (value_list
+        (value)
+        (value)
+        (value))
+      (requirement_suffix
+        (requirement_marker)
+        (requirement_expression)))
+    (setting
+      (key)
+      (value_list
+        (value)
+        (value)
+        (value))
+      (requirement_suffix
+        (requirement_marker)
+        (requirement_expression)))
+    (setting
+      (key)
+      (value_list
+        (value)
+        (value)
+        (value))
+      (platform_requirement_suffix
+        (requirement_marker))))
+  (section
+    (section_header
+      (section_name))
+    (rule
+      (requirement_prefix
+        (requirement_marker)
+        (requirement_expression))
+      (rule_type)
+      (value)
+      (policy))
+    (rule
+      (rule_type)
+      (value)
+      (policy)
+      (requirement_suffix
+        (requirement_marker)
+        (requirement_expression)))
+    (rule
+      (rule_type)
+      (value)
+      (policy)
+      (requirement_suffix
+        (requirement_marker)
+        (requirement_expression)))
+    (rule
+      (rule_type)
+      (value)
+      (policy)
+      (platform_requirement_suffix
+        (requirement_marker))))
+  (section
+    (section_header
+      (section_name))
+    (raw_line
+      (requirement_prefix
+        (requirement_marker)
+        (requirement_expression))
+      (value))
+    (raw_line
+      (value)
+      (requirement_suffix
+        (requirement_marker)
+        (requirement_expression)))
+    (raw_line
+      (value)
+      (requirement_suffix
+        (requirement_marker)
+        (requirement_expression)))
+    (raw_line
+      (value)
+      (platform_requirement_suffix
+        (requirement_marker)))))
+
+==================
+Comments and spaced values
+==================
+
+# hash comment
+; semicolon comment
+// slash comment
+[General]
+hash = value # inline comment
+semicolon = value ; inline comment
+slash = value // inline comment
+fragment = https://example.com/path#fragment
+literal = value;part
+protocol-relative=//cdn.example.com/path
+spaced = SSID:XD Office
+[Rule]
+DOMAIN,example.com,Smart Group
+DOMAIN,comment.example,REJECT // inline comment
+[URL Rewrite]
+^https://comment.example reject // inline comment
+
+---
+
+(source_file
+  (comment)
+  (comment)
+  (comment)
+  (section
+    (section_header
+      (section_name))
+    (setting
+      (key)
+      (value_list
+        (value))
+      (inline_comment))
+    (setting
+      (key)
+      (value_list
+        (value))
+      (inline_comment))
+    (setting
+      (key)
+      (value_list
+        (value))
+      (inline_comment))
+    (setting
+      (key)
+      (value_list
+        (value)))
+    (setting
+      (key)
+      (value_list
+        (value)))
+    (setting
+      (key)
+      (value_list
+        (value)))
+    (setting
+      (key)
+      (value_list
+        (value))))
+  (section
+    (section_header
+      (section_name))
+    (rule
+      (rule_type)
+      (value)
+      (policy))
+    (rule
+      (rule_type)
+      (value)
+      (policy)
+      (inline_comment)))
+  (section
+    (section_header
+      (section_name))
+    (raw_line
+      (value)
+      (inline_comment))))
+
+==================
+Multi-word keys and parenthesized rules
+==================
+
+[Proxy]
+Hong Kong Proxy = http, example.com, 8080
+[Rule]
+URL-REGEX,^https?://(www\.)?example\.com,DIRECT
+AND,((URL-REGEX,^https?://(www\.)?example\.com),(DOMAIN,example.org)),REJECT
+AND,((OR,((SUBNET,SSID:Home),(SUBNET,SSID:Office))),(RULE-SET,https://example.com/rs.conf)),DIRECT
+
+---
+
+(source_file
+  (section
+    (section_header
+      (section_name))
+    (setting
+      (key)
+      (value_list
+        (value)
+        (value)
+        (value))))
+  (section
+    (section_header
+      (section_name))
+    (rule
+      (rule_type)
+      (value)
+      (policy))
+    (rule
+      (rule_type)
+      (group
+        (nested_rule
+          (rule_type)
+          (value))
+        (nested_rule
+          (rule_type)
+          (value)))
+      (policy))
+    (rule
+      (rule_type)
+      (group
+        (nested_rule
+          (rule_type)
+          (group
+            (nested_rule
+              (rule_type)
+              (value))
+            (nested_rule
+              (rule_type)
+              (value))))
+        (nested_rule
+          (rule_type)
+          (value)))
+      (policy))))

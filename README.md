@@ -20,6 +20,8 @@ usually the part you actually read — falls out of the syntax tree. This gramma
 handles it, along with the rest of what Surge does that INI does not: proxy
 names containing emoji and colons (`🧡XD:000`), values containing spaces
 (`SSID:XD Office`), named sections (`[Tailscale ts-007]`), and `%APPEND%`.
+Surge hashbang directives, module metadata, and line conditions such as
+`#!REQUIREMENT` / `//!REQUIREMENT` are parsed separately from comments.
 
 ## What it highlights
 
@@ -93,16 +95,19 @@ Then update `rev` in `extension.toml` to the new commit and run
 
 `pnpm run lint` covers all of it: oxlint and oxfmt over `grammar.js`, Prettier
 over the docs and JSON, AutoCorrect over the prose, and `lint:grammar`, which
-regenerates the parser and fails if `src/` comes out different from what is
-committed. CI runs the same command, and a pre-commit hook runs the fixers over
-staged files.
+regenerates the parser, runs the Tree-sitter corpus tests, and fails if `src/`
+comes out different from what is committed. CI runs the same command, and a
+pre-commit hook runs the fixers over staged files.
 
-Two things that will waste your afternoon if you forget them:
+Three things that will waste your afternoon if you forget them:
 
 - **`src/parser.c` must stay committed.** Zed compiles it with wasi-sdk; it never
   runs `tree-sitter generate` itself.
 - **Zed caches the built grammar per `rev`.** A stale `rev` silently keeps the old
   parser, with no error to tell you why your change did nothing.
+- **Tree-sitter's compiled parser cache is shared by grammar name across
+  worktrees.** Run commands from the checkout being tested and set
+  `TREE_SITTER_LIBDIR` to a worktree-local directory when comparing checkouts.
 
 To check the grammar against real configs, from the repository root:
 
