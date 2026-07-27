@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+mise_bin="$HOME/.local/bin/mise"
+
+echo "Installing Git LFS if needed..."
+if ! command -v git-lfs >/dev/null 2>&1; then
+  sudo apt-get update
+  sudo apt-get install -y git-lfs
+fi
+git lfs install --skip-repo
+
+echo "Installing mise if needed..."
+if [[ ! -x "$mise_bin" ]]; then
+  mkdir -p "$(dirname "$mise_bin")"
+  curl --fail --location --silent --show-error https://mise.run | MISE_INSTALL_PATH="$mise_bin" sh
+fi
+
+export PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"
+
+profile_marker="# zed-surge mise tools"
+touch "$HOME/.bash_profile"
+if ! grep -Fqx "$profile_marker" "$HOME/.bash_profile"; then
+  cat >> "$HOME/.bash_profile" <<EOF
+
+$profile_marker
+if [[ "\${PWD}" == "$repo_root" ]]; then
+  export PATH="\$HOME/.local/bin:\$HOME/.local/share/mise/shims:\$PATH"
+fi
+EOF
+fi
+
+echo "Installing pinned tools..."
+"$mise_bin" install
+
+echo "Installing JavaScript dependencies..."
+"$mise_bin" exec -- pnpm install --frozen-lockfile
+
+tree_sitter_dir="$(
+  "$mise_bin" exec -- node -p \
+    "require('path').dirname(require.resolve('tree-sitter-cli/package.json'))"
+)"
+if ! "$tree_sitter_dir/tree-sitter" --version >/dev/null 2>&1; then
+  echo "Building a Debian-compatible tree-sitter CLI..."
+  if ! dpkg-query -W -f='${Status}' libclang-dev 2>/dev/null | grep -Fq 'ok installed'; then
+    sudo apt-get update
+    sudo apt-get install -y libclang-dev
+  fi
+  "$mise_bin" install rust@1.97.1
+  "$mise_bin" exec rust@1.97.1 -- \
+    cargo install --locked --version 0.26.11 tree-sitter-cli
+  cp "$HOME/.cargo/bin/tree-sitter" "$tree_sitter_dir/tree-sitter"
+fi
+
+echo "Orb setup complete."
+"$mise_bin" exec -- node --version
+"$mise_bin" exec -- pnpm --version

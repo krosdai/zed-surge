@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+export PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"
+
+echo "Checking orb toolchain..."
+command -v mise >/dev/null
+command -v node >/dev/null
+command -v pnpm >/dev/null
+echo "Orb resume complete."
