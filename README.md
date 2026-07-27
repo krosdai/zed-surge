@@ -87,10 +87,12 @@ After changing `grammar.js`:
 
 ```sh
 pnpm run generate
-git commit -am "…"
+pnpm run lint
 ```
 
-Then update `rev` in `extension.toml` to the new commit and run
+For a release, bump `version` and the grammar `rev` in `extension.toml` to the
+same version/tag (for example, `0.2.0` and `v0.2.0`), commit, then create that
+immutable tag on the release commit. Push both the commit and tag before running
 `zed: reload extensions`.
 
 `pnpm run lint` covers all of it: oxlint and oxfmt over `grammar.js`, Prettier
