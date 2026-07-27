@@ -168,9 +168,11 @@ module.exports = grammar({
     raw_line: ($) =>
       seq(optional($.requirement_prefix), $.value, optional($._line_suffix), $._newline),
 
-    key: ($) => repeat1($._word),
-    value: ($) => repeat1($._word),
-    policy: ($) => repeat1($._word),
+    // Logical rule types are literal tokens, so admit them anywhere an
+    // ordinary word is valid too (`AND = value`, a policy named `OR`, etc.).
+    key: ($) => repeat1(choice($._word, $._logical_type)),
+    value: ($) => repeat1(choice($._word, $._logical_type)),
+    policy: ($) => repeat1(choice($._word, $._logical_type)),
 
     // Any whitespace-delimited run of non-structural characters. `value` and
     // `policy` join adjacent runs so names such as `SSID:XD Office` remain one

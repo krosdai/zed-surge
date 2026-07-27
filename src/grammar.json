@@ -842,22 +842,49 @@
     "key": {
       "type": "REPEAT1",
       "content": {
-        "type": "SYMBOL",
-        "name": "_word"
+        "type": "CHOICE",
+        "members": [
+          {
+            "type": "SYMBOL",
+            "name": "_word"
+          },
+          {
+            "type": "SYMBOL",
+            "name": "_logical_type"
+          }
+        ]
       }
     },
     "value": {
       "type": "REPEAT1",
       "content": {
-        "type": "SYMBOL",
-        "name": "_word"
+        "type": "CHOICE",
+        "members": [
+          {
+            "type": "SYMBOL",
+            "name": "_word"
+          },
+          {
+            "type": "SYMBOL",
+            "name": "_logical_type"
+          }
+        ]
       }
     },
     "policy": {
       "type": "REPEAT1",
       "content": {
-        "type": "SYMBOL",
-        "name": "_word"
+        "type": "CHOICE",
+        "members": [
+          {
+            "type": "SYMBOL",
+            "name": "_word"
+          },
+          {
+            "type": "SYMBOL",
+            "name": "_logical_type"
+          }
+        ]
       }
     },
     "_word": {

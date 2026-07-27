@@ -301,3 +301,48 @@ AND,((OR,((SUBNET,SSID:Home),(SUBNET,SSID:Office))),(RULE-SET,https://example.co
           (rule_type)
           (value)))
       (policy))))
+
+==================
+Logical words in ordinary positions
+==================
+
+[General]
+AND = OR Value
+[Proxy]
+NOT Proxy = http, example.com, 8080
+[Rule]
+DOMAIN,example.com,AND
+[URL Rewrite]
+OR pattern replacement
+
+---
+
+(source_file
+  (section
+    (section_header
+      (section_name))
+    (setting
+      (key)
+      (value_list
+        (value))))
+  (section
+    (section_header
+      (section_name))
+    (setting
+      (key)
+      (value_list
+        (value)
+        (value)
+        (value))))
+  (section
+    (section_header
+      (section_name))
+    (rule
+      (rule_type)
+      (value)
+      (policy)))
+  (section
+    (section_header
+      (section_name))
+    (raw_line
+      (value))))
