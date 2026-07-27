@@ -22,7 +22,8 @@ export PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"
 profile_start="# >>> zed-surge mise tools >>>"
 profile_end="# <<< zed-surge mise tools <<<"
 touch "$HOME/.bash_profile"
-profile_tmp="$(mktemp)"
+profile_path="$(readlink -f "$HOME/.bash_profile")"
+profile_tmp="$(mktemp "${profile_path}.tmp.XXXXXX")"
 trap 'rm -f "$profile_tmp"' EXIT
 if ! awk -v start="$profile_start" -v end="$profile_end" '
   $0 == "# zed-surge mise tools" { old_lines = 3; next }
@@ -31,9 +32,9 @@ if ! awk -v start="$profile_start" -v end="$profile_end" '
   $0 == end && managed { managed = 0; next }
   !managed { print }
   END { if (managed) exit 1 }
-' "$HOME/.bash_profile" > "$profile_tmp"
+' "$profile_path" > "$profile_tmp"
 then
-  echo "Refusing to replace an unterminated managed block in $HOME/.bash_profile." >&2
+  echo "Refusing to replace an unterminated managed block in $profile_path." >&2
   exit 1
 fi
 cat >> "$profile_tmp" <<EOF
@@ -41,8 +42,8 @@ $profile_start
 export PATH="\$HOME/.local/bin:\$HOME/.local/share/mise/shims:\$PATH"
 $profile_end
 EOF
-cat "$profile_tmp" > "$HOME/.bash_profile"
-rm -f "$profile_tmp"
+chmod --reference="$profile_path" "$profile_tmp"
+mv -f "$profile_tmp" "$profile_path"
 trap - EXIT
 
 echo "Installing pinned tools..."
@@ -75,6 +76,10 @@ if [[ "$needs_tree_sitter_build" == true ]]; then
   done
 fi
 if ((${#apt_packages[@]} > 0)); then
+  if ! command -v apt-get >/dev/null 2>&1; then
+    echo "Installing system packages requires apt-get." >&2
+    exit 1
+  fi
   apt_get=(apt-get)
   if ((EUID != 0)); then
     if ! command -v sudo >/dev/null 2>&1; then
