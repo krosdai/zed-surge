@@ -23,7 +23,7 @@
     "format": "oxfmt && prettier --write --ignore-unknown --log-level=warn --no-error-on-unmatched-pattern \"**/*.{md,mdx,markdown,json,jsonc,json5,yaml,yml,html,htm,css,scss,less,vue,graphql,gql,hbs,handlebars}\" && mise run autocorrect:fix",
     "lint": "pnpm run lint:js && pnpm run lint:grammar && pnpm run lint:text",
     "lint:js": "oxlint && oxfmt --check && prettier --check --ignore-unknown --no-error-on-unmatched-pattern \"**/*.{md,mdx,markdown,json,jsonc,json5,yaml,yml,html,htm,css,scss,less,vue,graphql,gql,hbs,handlebars}\"",
-    "lint:grammar": "tree-sitter generate && git diff --exit-code --stat -- src/",
+    "lint:grammar": "tree-sitter generate && tree-sitter test && git diff --exit-code --stat -- src/",
     "lint:text": "mise run autocorrect:lint",
     "lint:staged": "lint-staged --concurrent false",
     "lint:fix": "oxlint --fix && pnpm run format",

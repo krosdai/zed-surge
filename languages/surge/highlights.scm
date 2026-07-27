@@ -2,6 +2,11 @@
 ; node — so capture precedence never has to be reasoned about.
 
 (comment) @comment
+(inline_comment) @comment
+(hashbang_directive_marker) @keyword
+(hashbang_directive_value) @string.special
+(requirement_marker) @keyword
+(requirement_expression) @string.special
 
 ; ---- section headers -------------------------------------------------------
 
@@ -34,13 +39,13 @@
 ; ---- value refinements -----------------------------------------------------
 
 ((value) @boolean
-  (#match? @boolean "^(true|false)$"))
+  (#match? @boolean "^\\s*(true|false)$"))
 
 ((value) @constant.builtin
-  (#match? @constant.builtin "^(DIRECT|REJECT|REJECT-TINYGIF|REJECT-DROP|REJECT-NO-DROP)$"))
+  (#match? @constant.builtin "^\\s*(DIRECT|REJECT|REJECT-TINYGIF|REJECT-DROP|REJECT-NO-DROP)$"))
 
 ((value) @number
-  (#match? @number "^[0-9]+$"))
+  (#match? @number "^\\s*[0-9]+$"))
 
 ((value) @link_uri
-  (#match? @link_uri "^https?://"))
+  (#match? @link_uri "^\\s*https?://"))

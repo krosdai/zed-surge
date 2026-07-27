@@ -31,20 +31,77 @@ module.exports = grammar({
 
     section: ($) => seq($.section_header, repeat($._line)),
 
-    // `[General]`, and also named sections like `[Tailscale ts-007]`.
+    // `[General]`, and also named sections like `[Tailscale ts-007]`. The
+    // opening bracket needs lexical precedence over `_word`, which would
+    // otherwise match the whole header after parentheses become ordinary in
+    // non-logical values.
     section_header: ($) =>
-      seq("[", alias(token(/[^\[\]\r\n]+/), $.section_name), "]", $._newline),
+      seq(token(prec(1, "[")), alias(token(/[^\[\]\r\n]+/), $.section_name), "]", $._newline),
 
-    _line: ($) => choice($._newline, $.comment, $.setting, $.rule, $.raw_line),
+    _line: ($) =>
+      choice($._newline, $.comment, $.hashbang_directive, $.setting, $.rule, $.raw_line),
 
-    // Only reachable at the start of a line, so a `#` inside a value stays
-    // part of that value instead of swallowing the rest of the line.
-    comment: () => token(prec(3, seq(/[#;]/, /[^\r\n]*/))),
+    // Only reachable at the start of a line, so comment markers inside values
+    // remain part of those values.
+    comment: () => token(prec(3, seq(choice("#", ";", "//"), /[^\r\n]*/))),
+
+    // Surge requires at least one horizontal space before an inline comment.
+    // Keeping that whitespace inside an immediate token distinguishes
+    // `value // comment` from a value that itself starts with `//`.
+    inline_comment: () =>
+      token.immediate(prec(3, seq(/[ \t]+/, choice("#", ";", "//"), /[^\r\n]*/))),
+
+    // Standalone Surge directives include managed-profile headers, detached
+    // section includes, and module metadata such as `#!name=…`. Keep this
+    // generic so newly introduced metadata does not fall back to a comment.
+    hashbang_directive: ($) =>
+      seq(
+        alias(token(prec(4, /#![A-Za-z][A-Za-z0-9_-]*/)), $.hashbang_directive_marker),
+        optional("="),
+        optional($.hashbang_directive_value),
+        $._newline,
+      ),
+
+    hashbang_directive_value: () => token(/[^\s=\r\n][^\r\n]*/),
+
+    // Managed profiles can conditionally enable a line. The prefix needs
+    // higher lexical precedence than `comment`; the suffix is recognized once
+    // the preceding value ends at horizontal whitespace.
+    requirement_prefix: ($) =>
+      seq(
+        alias(token(prec(5, "#!REQUIREMENT")), $.requirement_marker),
+        field("condition", $.requirement_expression),
+      ),
+
+    requirement_suffix: ($) =>
+      seq(
+        alias(token(prec(5, choice("#!REQUIREMENT", "//!REQUIREMENT"))), $.requirement_marker),
+        field("condition", $.requirement_expression),
+      ),
+
+    platform_requirement_suffix: ($) =>
+      alias(
+        token(prec(5, choice("#!IOS-ONLY", "#!MACOS-ONLY", "#!TVOS-ONLY"))),
+        $.requirement_marker,
+      ),
+
+    _requirement_suffix: ($) => choice($.requirement_suffix, $.platform_requirement_suffix),
+
+    _line_suffix: ($) => choice($._requirement_suffix, $.inline_comment),
+
+    requirement_expression: () => token(choice(/"[^"\r\n]*"/, /[^ \t\r\n]+/)),
 
     // ---- key = value ----------------------------------------------------
 
     setting: ($) =>
-      seq(field("name", alias($._word, $.key)), "=", optional($.value_list), $._newline),
+      seq(
+        optional($.requirement_prefix),
+        field("name", $.key),
+        "=",
+        optional($.value_list),
+        optional($._line_suffix),
+        $._newline,
+      ),
 
     value_list: ($) => seq(optional($.directive), $._item, repeat(seq(",", $._item))),
 
@@ -60,17 +117,22 @@ module.exports = grammar({
 
     // ---- [Rule] lines ---------------------------------------------------
 
+    // Only logical rules treat parentheses as group delimiters. In every other
+    // rule, parentheses remain part of values such as URL regex patterns.
     rule: ($) =>
       seq(
-        field("type", alias($._word, $.rule_type)),
-        ",",
-        repeat(seq($._rule_arg, ",")),
+        optional($.requirement_prefix),
+        choice(
+          seq(field("type", alias($._logical_type, $.rule_type)), ",", $.group, ","),
+          seq(field("type", alias($._word, $.rule_type)), ",", repeat(seq($.value, ","))),
+        ),
         field("policy", $.policy),
         repeat(seq(",", $.rule_modifier)),
+        optional($._line_suffix),
         $._newline,
       ),
 
-    _rule_arg: ($) => choice($.group, $.value),
+    _logical_type: () => choice("AND", "OR", "NOT"),
 
     // The `((…),(…))` wrapper that AND/OR/NOT take.
     group: ($) => seq("(", $.nested_rule, repeat(seq(",", $.nested_rule)), ")"),
@@ -79,12 +141,16 @@ module.exports = grammar({
     nested_rule: ($) =>
       seq(
         "(",
-        field("type", alias($._word, $.rule_type)),
+        field("type", alias($._group_word, $.rule_type)),
         ",",
-        $._rule_arg,
-        repeat(seq(",", $._rule_arg)),
+        $._nested_arg,
+        repeat(seq(",", $._nested_arg)),
         ")",
       ),
+
+    _nested_arg: ($) => choice($.group, alias($._group_value, $.value)),
+
+    _group_value: ($) => repeat1($._group_word),
 
     rule_modifier: () =>
       choice(
@@ -99,14 +165,25 @@ module.exports = grammar({
 
     // Sections such as [URL Rewrite] use whitespace-separated fields. Those
     // land here rather than producing ERROR nodes.
-    raw_line: ($) => seq($.value, $._newline),
+    raw_line: ($) =>
+      seq(optional($.requirement_prefix), $.value, optional($._line_suffix), $._newline),
 
-    value: ($) => $._word,
-    policy: ($) => $._word,
+    // Logical rule types are literal tokens, so admit them anywhere an
+    // ordinary word is valid too (`AND = value`, a policy named `OR`, etc.).
+    key: ($) => repeat1(choice($._word, $._logical_type)),
+    value: ($) => repeat1(choice($._word, $._logical_type)),
+    policy: ($) => repeat1(choice($._word, $._logical_type)),
 
-    // Any run of characters that is not structural. Internal spaces are kept
-    // (`SSID:XD Office`), leading/trailing ones are not.
-    _word: () => token(/[^\s,=()\[\]#;][^,=()\r\n]*[^\s,=()\r\n]|[^\s,=()\[\]#;]/),
+    // Any whitespace-delimited run of non-structural characters. `value` and
+    // `policy` join adjacent runs so names such as `SSID:XD Office` remain one
+    // node. Parentheses are ordinary here because only logical rules use them
+    // structurally; line-suffix markers still win through lexical precedence.
+    _word: () => token(/[^\s,=\r\n]+/),
+
+    // Inside a logical group, unmatched parentheses delimit nested rules. A
+    // balanced pair can remain inside one argument, as in a URL regex; `=` is
+    // ordinary data here so signed and query-string URLs remain intact.
+    _group_word: () => token(/([^\s,()\r\n]|\([^\s,()\r\n]*\))+/),
 
     _newline: () => token(/\r?\n/),
   },

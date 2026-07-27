@@ -10,9 +10,9 @@ repository = "https://github.com/krosdai/zed-surge"
 # and compiles src/parser.c with wasi-sdk — it never runs `tree-sitter
 # generate`, so the generated sources have to stay committed.
 #
-# After editing grammar.js: regenerate, commit, then bump `rev` to that commit
-# and run `zed: reload extensions`. Zed caches the built grammar per rev, so a
-# stale rev here silently keeps the old parser.
+# For a release, set `version` and `rev` to the matching version and tag, commit,
+# then create that immutable tag. Zed caches the built grammar per rev, so
+# moving or reusing a tag may silently keep the old parser.
 [grammars.surge]
 repository = "https://github.com/krosdai/zed-surge"
-rev = "4d45676ca96bd3ae5e01536de9cc1acb6659a75b"
+rev = "v0.1.0"
