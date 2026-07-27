@@ -24,13 +24,18 @@ profile_end="# <<< zed-surge mise tools <<<"
 touch "$HOME/.bash_profile"
 profile_tmp="$(mktemp)"
 trap 'rm -f "$profile_tmp"' EXIT
-awk -v start="$profile_start" -v end="$profile_end" '
+if ! awk -v start="$profile_start" -v end="$profile_end" '
   $0 == "# zed-surge mise tools" { old_lines = 3; next }
   old_lines > 0 { old_lines--; next }
   $0 == start { managed = 1; next }
-  $0 == end { managed = 0; next }
+  $0 == end && managed { managed = 0; next }
   !managed { print }
+  END { if (managed) exit 1 }
 ' "$HOME/.bash_profile" > "$profile_tmp"
+then
+  echo "Refusing to replace an unterminated managed block in $HOME/.bash_profile." >&2
+  exit 1
+fi
 cat >> "$profile_tmp" <<EOF
 $profile_start
 export PATH="\$HOME/.local/bin:\$HOME/.local/share/mise/shims:\$PATH"
