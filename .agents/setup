@@ -8,7 +8,12 @@ cd "$repo_root"
 echo "Installing mise if needed..."
 if [[ ! -x "$mise_bin" ]]; then
   mkdir -p "$(dirname "$mise_bin")"
-  curl --fail --location --silent --show-error https://mise.run | MISE_INSTALL_PATH="$mise_bin" sh
+  mise_installer="$(mktemp)"
+  trap 'rm -f "$mise_installer"' EXIT
+  curl --fail --location --silent --show-error --output "$mise_installer" https://mise.run
+  MISE_INSTALL_PATH="$mise_bin" sh "$mise_installer"
+  rm -f "$mise_installer"
+  trap - EXIT
 fi
 
 export PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"
@@ -65,8 +70,16 @@ if [[ "$needs_tree_sitter_build" == true ]]; then
   done
 fi
 if ((${#apt_packages[@]} > 0)); then
-  sudo apt-get update
-  sudo apt-get install -y "${apt_packages[@]}"
+  apt_get=(apt-get)
+  if ((EUID != 0)); then
+    if ! command -v sudo >/dev/null 2>&1; then
+      echo "Installing system packages requires root or sudo." >&2
+      exit 1
+    fi
+    apt_get=(sudo apt-get)
+  fi
+  "${apt_get[@]}" update
+  "${apt_get[@]}" install -y "${apt_packages[@]}"
 fi
 git lfs install --skip-repo
 
