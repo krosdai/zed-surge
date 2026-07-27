@@ -10,9 +10,9 @@ repository = "https://github.com/krosdai/zed-surge"
 # and compiles src/parser.c with wasi-sdk — it never runs `tree-sitter
 # generate`, so the generated sources have to stay committed.
 #
-# For a release, set `version` and `rev` to the matching version and tag, commit,
-# then create that immutable tag. Zed caches the built grammar per rev, so
-# moving or reusing a tag may silently keep the old parser.
+# After changing the grammar, commit the generated sources first, then point
+# `rev` at that commit SHA in a follow-up manifest commit. Zed's shallow fetch
+# does not create a local ref for tags, so tag names cannot be checked out here.
 [grammars.surge]
 repository = "https://github.com/krosdai/zed-surge"
-rev = "v0.1.0"
+rev = "8ca56cddb57d26cc17f10548ccedf29452638faa"
