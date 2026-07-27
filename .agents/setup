@@ -93,6 +93,7 @@ if [[ "$needs_tree_sitter_build" == true ]]; then
   "$mise_bin" install rust@1.97.1
   "$mise_bin" exec rust@1.97.1 -- \
     cargo install --locked --version "$tree_sitter_version" tree-sitter-cli
+  rm -f "$tree_sitter_dir/tree-sitter"
   install -m 0755 "$HOME/.cargo/bin/tree-sitter" "$tree_sitter_dir/tree-sitter"
 fi
 "$tree_sitter_dir/tree-sitter" --version
