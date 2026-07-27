@@ -87,12 +87,16 @@ After changing `grammar.js`:
 
 ```sh
 pnpm run lint
+git add grammar.js src/
+git commit -m "…"
 ```
 
-For a release, bump `version` and the grammar `rev` in `extension.toml` to the
-matching version and tag (for example, `0.2.0` and `v0.2.0`), commit, then create
-that immutable tag on the release commit. Push both the commit and tag before
-running `zed: reload extensions`.
+Because the extension and grammar share this repository, releases take two
+commits: first commit the grammar and generated sources, then put that commit's
+full SHA in `extension.toml`, bump `version`, and commit the manifest update.
+Create the release tag on that second commit, then push both commits and the tag.
+Do not use the tag itself as `rev`: Zed fetches it into `FETCH_HEAD` without
+creating a local tag ref, then fails to check out the tag name.
 
 `pnpm run lint` covers all of it: oxlint and oxfmt over `grammar.js`, Prettier
 over the docs and JSON, AutoCorrect over the prose, and `lint:grammar`, which
