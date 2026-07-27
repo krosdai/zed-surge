@@ -4,7 +4,10 @@ set -euo pipefail
 export PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"
 
 echo "Checking orb toolchain..."
-command -v mise >/dev/null
-command -v node >/dev/null
-command -v pnpm >/dev/null
+for tool in mise node pnpm; do
+  if ! command -v "$tool" >/dev/null; then
+    echo "Missing required tool: $tool. Run .agents/setup." >&2
+    exit 1
+  fi
+done
 echo "Orb resume complete."

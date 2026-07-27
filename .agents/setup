@@ -3,13 +3,7 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 mise_bin="$HOME/.local/bin/mise"
-
-echo "Installing Git LFS if needed..."
-if ! command -v git-lfs >/dev/null 2>&1; then
-  sudo apt-get update
-  sudo apt-get install -y git-lfs
-fi
-git lfs install --skip-repo
+cd "$repo_root"
 
 echo "Installing mise if needed..."
 if [[ ! -x "$mise_bin" ]]; then
@@ -18,18 +12,28 @@ if [[ ! -x "$mise_bin" ]]; then
 fi
 
 export PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"
+"$mise_bin" trust --yes "$repo_root/mise.toml"
 
-profile_marker="# zed-surge mise tools"
+profile_start="# >>> zed-surge mise tools >>>"
+profile_end="# <<< zed-surge mise tools <<<"
 touch "$HOME/.bash_profile"
-if ! grep -Fqx "$profile_marker" "$HOME/.bash_profile"; then
-  cat >> "$HOME/.bash_profile" <<EOF
-
-$profile_marker
-if [[ "\${PWD}" == "$repo_root" ]]; then
-  export PATH="\$HOME/.local/bin:\$HOME/.local/share/mise/shims:\$PATH"
-fi
+profile_tmp="$(mktemp)"
+trap 'rm -f "$profile_tmp"' EXIT
+awk -v start="$profile_start" -v end="$profile_end" '
+  $0 == "# zed-surge mise tools" { old_lines = 3; next }
+  old_lines > 0 { old_lines--; next }
+  $0 == start { managed = 1; next }
+  $0 == end { managed = 0; next }
+  !managed { print }
+' "$HOME/.bash_profile" > "$profile_tmp"
+cat >> "$profile_tmp" <<EOF
+$profile_start
+export PATH="\$HOME/.local/bin:\$HOME/.local/share/mise/shims:\$PATH"
+$profile_end
 EOF
-fi
+cat "$profile_tmp" > "$HOME/.bash_profile"
+rm -f "$profile_tmp"
+trap - EXIT
 
 echo "Installing pinned tools..."
 "$mise_bin" install
@@ -41,17 +45,39 @@ tree_sitter_dir="$(
   "$mise_bin" exec -- node -p \
     "require('path').dirname(require.resolve('tree-sitter-cli/package.json'))"
 )"
+tree_sitter_version="$(
+  "$mise_bin" exec -- node -p "require('tree-sitter-cli/package.json').version"
+)"
+needs_tree_sitter_build=false
 if ! "$tree_sitter_dir/tree-sitter" --version >/dev/null 2>&1; then
+  needs_tree_sitter_build=true
+fi
+
+apt_packages=()
+if ! command -v git-lfs >/dev/null 2>&1; then
+  apt_packages+=(git-lfs)
+fi
+if [[ "$needs_tree_sitter_build" == true ]]; then
+  for package in build-essential libclang-dev; do
+    if ! dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -Fq 'ok installed'; then
+      apt_packages+=("$package")
+    fi
+  done
+fi
+if ((${#apt_packages[@]} > 0)); then
+  sudo apt-get update
+  sudo apt-get install -y "${apt_packages[@]}"
+fi
+git lfs install --skip-repo
+
+if [[ "$needs_tree_sitter_build" == true ]]; then
   echo "Building a Debian-compatible tree-sitter CLI..."
-  if ! dpkg-query -W -f='${Status}' libclang-dev 2>/dev/null | grep -Fq 'ok installed'; then
-    sudo apt-get update
-    sudo apt-get install -y libclang-dev
-  fi
   "$mise_bin" install rust@1.97.1
   "$mise_bin" exec rust@1.97.1 -- \
-    cargo install --locked --version 0.26.11 tree-sitter-cli
-  cp "$HOME/.cargo/bin/tree-sitter" "$tree_sitter_dir/tree-sitter"
+    cargo install --locked --version "$tree_sitter_version" tree-sitter-cli
+  install -m 0755 "$HOME/.cargo/bin/tree-sitter" "$tree_sitter_dir/tree-sitter"
 fi
+"$tree_sitter_dir/tree-sitter" --version
 
 echo "Orb setup complete."
 "$mise_bin" exec -- node --version
