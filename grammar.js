@@ -181,8 +181,9 @@ module.exports = grammar({
     _word: () => token(/[^\s,=\r\n]+/),
 
     // Inside a logical group, unmatched parentheses delimit nested rules. A
-    // balanced pair can remain inside one argument, as in a URL regex.
-    _group_word: () => token(/([^\s,=()\r\n]|\([^\s,=()\r\n]*\))+/),
+    // balanced pair can remain inside one argument, as in a URL regex; `=` is
+    // ordinary data here so signed and query-string URLs remain intact.
+    _group_word: () => token(/([^\s,()\r\n]|\([^\s,()\r\n]*\))+/),
 
     _newline: () => token(/\r?\n/),
   },

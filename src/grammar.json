@@ -898,7 +898,7 @@
       "type": "TOKEN",
       "content": {
         "type": "PATTERN",
-        "value": "([^\\s,=()\\r\\n]|\\([^\\s,=()\\r\\n]*\\))+"
+        "value": "([^\\s,()\\r\\n]|\\([^\\s,()\\r\\n]*\\))+"
       }
     },
     "_newline": {

@@ -254,7 +254,7 @@ Hong Kong Proxy = http, example.com, 8080
 [Rule]
 URL-REGEX,^https?://(www\.)?example\.com,DIRECT
 AND,((URL-REGEX,^https?://(www\.)?example\.com),(DOMAIN,example.org)),REJECT
-AND,((OR,((SUBNET,SSID:Home),(SUBNET,SSID:Office))),(RULE-SET,https://example.com/rs.conf)),DIRECT
+AND,((OR,((SUBNET,SSID:Home),(SUBNET,SSID:Office))),(RULE-SET,https://example.com/rs.conf?token=a=b&x=1)),DIRECT
 
 ---
 

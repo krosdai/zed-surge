@@ -86,14 +86,13 @@ mise run setup
 After changing `grammar.js`:
 
 ```sh
-pnpm run generate
 pnpm run lint
 ```
 
 For a release, bump `version` and the grammar `rev` in `extension.toml` to the
-same version/tag (for example, `0.2.0` and `v0.2.0`), commit, then create that
-immutable tag on the release commit. Push both the commit and tag before running
-`zed: reload extensions`.
+matching version and tag (for example, `0.2.0` and `v0.2.0`), commit, then create
+that immutable tag on the release commit. Push both the commit and tag before
+running `zed: reload extensions`.
 
 `pnpm run lint` covers all of it: oxlint and oxfmt over `grammar.js`, Prettier
 over the docs and JSON, AutoCorrect over the prose, and `lint:grammar`, which
