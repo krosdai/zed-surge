@@ -7,6 +7,10 @@ cd "$repo_root"
 
 echo "Installing mise if needed..."
 if [[ ! -x "$mise_bin" ]]; then
+  if ! command -v curl >/dev/null 2>&1; then
+    echo "Installing mise requires curl." >&2
+    exit 1
+  fi
   mkdir -p "$(dirname "$mise_bin")"
   mise_installer="$(mktemp)"
   trap 'rm -f "$mise_installer"' EXIT
